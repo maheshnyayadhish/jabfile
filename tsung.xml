@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<!DOCTYPE tsung SYSTEM "/root/tsung-1.7.0/tsung-1.0.dtd">
+<tsung loglevel="debug" version="1.0">
+
+  <clients>
+    <client host="tsung" maxusers="100000" use_controller_vm="false"/>
+  </clients>
+
+  <servers>
+
+  <server host="node1" port="30009" type="tcp"/>
+ </servers>
+
+  <load>
+   <arrivalphase phase="1" duration="400" unit="second">
+    <users arrivalrate="100" unit="second" maxnumber="100000"/>
+   </arrivalphase>
+  </load>
+
+  <options>
+  <option type="ts_jabber" name="global_number" value="100"/>
+  <option type="ts_jabber" name="userid_max" value="100000"/>
+ <option type="ts_jabber" name="domain" value="node1"/>
+<option name="file_server" id="file_id" value="/root/.tsung/user.csv"/>
+
+ <option name="ports_range" min="1025" max="65535"/>
+ </options>
+
+  <sessions>
+
+   <session bidi="true" probability="100" name="jabber-example" type="ts_jabber">
+  <setdynvars sourcetype="file" fileid="file_id" delimiter=";" order="iter">
+ <var name="username"/>
+ <var name="password"/>
+</setdynvars>
+
+
+
+   <request subst="true">
+     <jabber type="connect" ack="no_ack">
+        <xmpp_authenticate username="test_%%_username%%" passwd="password"/>
+     </jabber>
+   </request>
+
+
+   <thinktime value="2"/>
+
+   <transaction name="authenticate">
+    <request>
+      <jabber type="auth_sasl" ack="local"/></request>
+
+    <request>
+      <jabber type="connect" ack="local"/> </request>
+
+   <request>
+      <jabber type="auth_sasl_bind" ack="local"/></request>
+   <request>
+      <jabber type="auth_sasl_session" ack="local"/></request>
+
+   </transaction>
+
+    <thinktime value="5"/>
+    <request> <jabber type="presence:initial" ack="no_ack"/> </request>
+
+    <thinktime value="10"/>
+
+    <transaction name="online">
+      <request> <jabber type="chat" ack="no_ack" size="16" destination="online"/></request>
+    </transaction>
+
+    <for from="1" to="200" incr="1" var="counter">
+       <request> <jabber type="raw" ack="no_ack" data=""/></request>
+       <thinktime value="30" random="false"/>
+   </for>
+
+   <for from="1" to="200" incr="1" var="counter">
+       <request> <jabber type="raw" ack="no_ack" data=""/></request>
+       <thinktime value="30" random="false"/>
+   </for>
+
+  <transaction name="close">
+     <request> <jabber type="close" ack="no_ack"/> </request>
+   </transaction>
+
+
+ </session>
+
+
+ </sessions>
+</tsung>
